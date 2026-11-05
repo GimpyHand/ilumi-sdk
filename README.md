@@ -1,202 +1,130 @@
-# Ilumi Smart Bulb Python SDK
+# ilumi
 
-This repository provides a Python interface for controlling Ilumi Smart Bulbs via Bluetooth Low Energy (BLE). It has been reverse-engineered from the official Ilumi Android App to bypass initial pairing requirements and communicate directly with the bulb's GATT characteristics.
+Control old iLumi Bluetooth bulbs from a computer, without the discontinued phone app.
 
-## Prerequisites
+The official app is unsupported. These bulbs still speak Bluetooth Low Energy, and this project talks to them directly. It was reverse-engineered from the Android app so a Linux machine can enroll a bulb once, then turn it on, set a color, run an effect, or open a small web page you can use from a phone on the same network.
+
+Your enrollment file stays on your machine. It is not part of this repository.
+
+## What you need
 
 - Linux with a Bluetooth adapter
-- Python 3.x
-- `bleak` library for BLE communication
+- Python 3
+- A bulb that is powered on and in range
 
-## Setup
+## How to run the web app
 
-1. **Set up a virtual environment and install dependencies:**
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install bleak
-   ```
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python3 enroll.py          # first time only
+python3 webapp.py
+```
 
-2. **Enroll the Bulb(s) (First Time Only):**
-   Before you can control the bulbs, you need to enroll your machine to them. The interactive enrollment script will discover your bulbs, **flash them green** so you can physically identify them, and ask you to assign a `name` and a `group`.
-   ```bash
-   python3 enroll.py
-   ```
-   *This saves the mesh configuration to `ilumi_config.json`.*
+Open http://localhost:8765/. The page can set color, brightness, white profiles, and built-in effects, including beat, track, candle, and shuffle modes.
 
-## Usage
+`enroll.py` discovers nearby bulbs, flashes each one green so you can tell them apart, and asks for a name and optional groups. It writes that to `ilumi_config.json` in this directory. Keep that file private. It holds the bulb addresses and the mesh key for your set.
 
-Once enrolled, you can use the provided scripts to control a single bulb, a group, or your entire fleet simultaneously!
+The server listens on all interfaces, port 8765. On a home network you can open `http://<this-computer>:8765/` from a phone. Do not expose that port to the internet. There is no login.
 
-Every control script supports the following routing arguments:
-* `--name [NAME]` (e.g. `--name kitchen`)
-* `--group [GROUP]` (e.g. `--group lounge`)
-* `--all` (Targets every enrolled bulb)
-* `--mac [MAC_ADDRESS]` (Direct targeting)
-* `--fade [MS]` (Smooth transition time in milliseconds. Default: `500` for color/whites, `1000` for on/off. Note: When addressing multiple bulbs *without* `--mesh`, this defaults to `0` to prevent delayed sequential fading.)
-* `--no-fade` (Force instant transition)
-* `--stream` (Connect to all bulbs concurrently for simultaneous shared fading. **Recommended for group synchronicity.**)
-* `--mesh` (Experimental: Broadcast command via Bluetooth Mesh proxy. Note: Mesh messaging can be unreliable.)
-* `--retries [N]` (Number of times to resend the mesh packet for reliability. Default: `3`)
-* `--proxy [NAME_OR_MAC]` (Specify a proxy bulb by name or MAC address to route mesh commands through when using `--mesh`)
+## How to control bulbs from the terminal
 
-> [!TIP]
-> **Accuracy Note:** The `--stream` option has higher accuracy and better synchronicity than `--mesh` when controlling multiple bulbs as a group.
+The same enrollment works for the scripts. Every control script accepts:
 
-- **Turn On / Off:**
-  ```bash
-  python3 on.py --all
-  python3 off.py --group lounge
-  ```
+- `--name kitchen`
+- `--group lounge`
+- `--all`
+- `--mac AA:BB:CC:DD:EE:FF`
+- `--fade 500` (milliseconds; color defaults to 500, on/off to 1000)
+- `--no-fade`
+- `--stream` (connect to every target at once; best when a group should change together)
+- `--mesh` and `--proxy kitchen` (experimental mesh broadcast; less reliable than `--stream`)
+- `--retries 3`
 
-- **Set Color (Red, Green, Blue, White [optional], Brightness [optional]):**
-  ```bash
-  # Set the kitchen to green
-  python3 color.py 0 255 0 --name kitchen
-  
-  # Set the whole house to red at very low brightness (25/255)
-  python3 color.py 255 0 0 0 25 --all
-  ```
+```bash
+python3 on.py --all
+python3 off.py --group lounge
+python3 color.py 0 255 0 --name kitchen
+python3 color.py 255 0 0 0 25 --all          # red, white channel 0, brightness 25/255
+python3 color.py random --all
+python3 whites.py                             # list profiles
+python3 whites.py early_morning --all
+python3 effects.py                            # list effects
+python3 effects.py fireworks --group lounge
+```
 
-- **Random Color Modes:**
-  Trigger instant random colors or continuous cycling.
-  ```bash
-  # Set a single random color
-  python3 color.py random --all
-  
-  # Start a continuous random color sequence
-  # Note: 10s hardware-hardcoded transition interval
-  python3 color.py random_sequence --all
-  ```
-  
-- **Unenroll Device (Factory Reset):**
-  If you need to completely remove a bulb from your network and reset it to factory defaults, use `unenroll.py`. 
-  **Warning**: This is disruptive and requires re-running `enroll.py`.
-  ```bash
-  python3 unenroll.py --name kitchen
-  ```
+`unenroll.py` factory-resets a bulb and drops it from your mesh. You have to enroll it again afterwards.
 
-- **Predefined Whites & Effects:**
-  Use `whites.py` for static profiles and `effects.py` for animations. Both scripts will output a **JSON array** of available modes if called without arguments.
+```bash
+python3 unenroll.py --name kitchen
+```
 
-  ```bash
-  # List all available white profiles
-  python3 whites.py
-  
-  # Set the early_morning profile on all bulbs
-  python3 whites.py early_morning --all
-  
-  # List all available animations
-  python3 effects.py
-  
-  # Play the fireworks animation in the lounge
-  python3 effects.py fireworks --group lounge
-  ```
+### Clock and circadian color
 
-- **Hardware-Backed Circadian Rhythm:**
-  The bulbs can automatically adjust their color temperature over the course of a day using their internal Real-Time Clock (RTC).
-  
-  ```bash
-  # Synchronize the bulb's clock with your computer
-  python3 circadian.py sync --all
-  
-  # Enable circadian mode
-  python3 circadian.py on --all
-  
-  # Check if circadian mode is active
-  python3 circadian.py status --name kitchen
-  ```
+The bulb can shift color temperature through the day from its own clock.
 
-### Meltdown Effects (Custom)
-We've added custom high-intensity effects:
-- **core_breach**: Trigger via `python3 whites.py core_breach`. Uses the bulb's hardware flicker mode for an unstable molten orange glow.
-- **radiation_leak**: Trigger via `python3 effects.py radiation_leak`. A rapid (100ms) strobe that alternates between toxic green and ionizing cyan.
+```bash
+python3 circadian.py sync --all
+python3 circadian.py on --all
+python3 circadian.py status --name kitchen
+```
 
-## Advanced Integrations
+Two custom looks sit on top of the hardware modes:
 
-This SDK supports bypassing the standard BLE acknowledgement sequence (using `write_without_response`) to achieve high-throughput, UDP-like streaming to the bulb (upwards of ~20 frames per second). 
+- `python3 whites.py core_breach` — flickering molten orange
+- `python3 effects.py radiation_leak` — fast green/cyan strobe
 
-### Live Streaming & Audio Reactivity
-- **Test Stream:** Run a 20 FPS high-speed color sweep across all bulbs:
-  ```bash
-  python3 stream.py --fps 20 --duration 10 --all
-  ```
-- **Audio Visualizer:** Maps your system microphone's bass to Red and treble to Blue in real-time. Syncs perfectly across bulb groups.
-  ```bash
-  pip install sounddevice soundfile numpy scipy
-  python3 audio_stream.py --group lounge
-  ```
+## Other ways in
 
-### Smart Home Ecosystems (MQTT)
-Integrate the bulb seamlessly into **Home Assistant** (or OpenHAB/Node-RED) using the MQTT protocol.
-- **MQTT Bridge:** Runs a persistent Bluetooth connection and translates standard Home Assistant JSON commands to lightning-fast SDK calls. The bulb will automatically appear in Home Assistant via MQTT Auto-Discovery.
-  ```bash
-  pip install paho-mqtt
-  python3 mqtt_bridge.py --broker [YOUR_MQTT_IP_ADDRESS]
-  ```
+These are optional. Install only what you use.
 
-### Professional Lighting Software (Art-Net DMX)
-Control the bulb natively using professional lighting consoles and VJ software (like QLC+, Resolume, and SoundSwitch).
-- **Network DMX Interface:** Listens for standard Art-Net UDP Packets (`OpDmx`) on Port `6454` and maps DMX channels 1-4 directly to the bulbs' R, G, B, and W LEDs asynchronously.
-  ```bash
-  python3 artnet_stream.py --universe 0 --channel 1 --group stage
-  ```
+**Microphone visualizer.** Bass drives red, treble drives blue.
 
-## Mesh Diagnostics & Optimization
+```bash
+python3 audio_stream.py --group lounge
+```
 
-The SDK now includes tools to visualize your Bluetooth Mesh topology and optimize command routing.
+**Fast color stream** (about 20 frames per second, no per-packet acknowledgement):
 
-### 1. Mesh Topology Mapping
-Automatically crawl your entire network and generate high-fidelity visualizations.
-- **Crawl & Cache**:
-  ```bash
-  python3 mesh_mapper.py --save mesh_data.json
-  ```
-- **Interactive Backbone Explorer**:
-  Generates a "Premium" interactive map with a highlighted communication backbone (MST).
-  ```bash
-  python3 pyvis_mapper.py --load mesh_data.json
-  ```
-  *This produces `mesh_map.html` which you can open in any browser.*
+```bash
+python3 stream.py --fps 20 --duration 10 --all
+```
 
-### 2. Identifying the Best Proxy
-Wait... which bulb is best for `--proxy`? 
-- **The "Hub" Strategy**: In the interactive map, look for nodes with the most **thick glowing lines**. These are your central hubs.
-- **The "Green Zone" Strategy**: Look for bulbs with the highest number of **Green (-30 to -65 dBm)** links in the matrix.
-- **Proximity**: Choose the hub bulb that is physically closest to your gateway for the fastest initial hop.
+**Home Assistant** via MQTT discovery:
 
-> [!TIP]
-> Use `python3 pyvis_mapper.py --load mesh_data.json` to instantly regenerate the map after renaming bulbs in `ilumi_config.json` without needing to re-scan the mesh!
+```bash
+python3 mqtt_bridge.py --broker 192.168.1.10
+```
 
-## Node & Group Management
+**Art-Net / DMX.** Universe packets on UDP port 6454. Channels 1–4 map to red, green, blue, and white.
 
-The SDK provides programmatic access to the bulb's internal network identity and group memberships.
+```bash
+python3 artnet_stream.py --universe 0 --channel 1 --group stage
+```
 
-- **Querying Identity**:
-  - `await sdk.get_node_id()`: Returns the current 16-bit Node ID.
-  - `await sdk.get_group_ids()`: Returns a list of all assigned 16-bit Group IDs.
-- **Modifying State**:
-  - `await sdk.set_node_id(node_id)`: Directly sets the Node ID (Use with caution).
-  - `await sdk.add_group_id(group_id)`: Adds the bulb to a group.
-  - `await sdk.del_group_id(group_id)`: Removes the bulb from a group.
-  - `await sdk.clear_all_group_ids()`: Wipes all group memberships.
+## Mesh
 
-*Note: These methods are currently internal to the `IlumiSDK` class and are primarily used for system integration and advanced clustering.*
+`mesh_mapper.py` walks the bulbs and can save a snapshot. `pyvis_mapper.py` turns that snapshot into `mesh_map.html`.
 
-## Troubleshooting
-1.  **Bumble USB Permissions**: If using the Bumble backend and you see `LIBUSB_ERROR_ACCESS`, refer to the [Bumble Bluetooth Setup Guide](docs/BUMBLE_SETUP.md).
-2.  **Animations**: If animations don't play:
-    1.  **Protocol Fix**: Ensure `IlumiApiCmdType.ILUMI_API_CMD_SET_COLOR_PATTERN` is set to `7` and `START_COLOR_PATTERN` is set to `8` in `ilumi_sdk.py`.
-    2.  **Explicit Start**: `effects.py` handles both uploading and triggering the animation pattern.
+```bash
+python3 mesh_mapper.py --save mesh_data.json
+python3 pyvis_mapper.py --load mesh_data.json
+```
 
-## Permissions & Debugging
-Refer to `ENABLEMENT.md` for Bluetooth permission setup and `PROTOCOL.md` for technical details on the GATT protocol. For developer contribution guidelines, see `CONTRIBUTING.md`.
+For `--mesh`, pick a `--proxy` bulb that can hear most of the others and that sits near the computer. The map shows those links. `--stream` is still the more reliable way to change several bulbs together.
 
-For protocol captures, you can uncomment the "observing mode" loop in `effects.py` to keep the connection alive.
+Node and group IDs are also available on `IlumiSDK` (`get_node_id`, `get_group_ids`, `set_node_id`, `add_group_id`, `del_group_id`, `clear_all_group_ids`). Treat those as advanced. A bad node id will make the bulb hard to address.
 
-## License & Disclaimer
+## When something fails
 
-This project is open-source and licensed under the [MIT License](LICENSE).
+- The bulb must be on and close enough for a direct connection. Enrollment and the web app both use the computer's Bluetooth adapter, not the phone.
+- Bumble USB permission errors (`LIBUSB_ERROR_ACCESS`) are covered in [docs/BUMBLE_SETUP.md](docs/BUMBLE_SETUP.md).
+- Bluetooth permissions and the GATT notes live in `ENABLEMENT.md` and `PROTOCOL.md`.
+- If an effect uploads but never starts, `effects.py` both writes the pattern and sends the start command. The pattern command id is `7` and the start command id is `8` in `ilumi_sdk.py`.
 
-**⚠️ EXTREME LIABILITY DISCLAIMER ⚠️**
-By using this software, you explicitly agree that the authors are completely free from any and all liability. You waive any rights to claim damages if your bulbs explode, melt, catch fire, burn your house down, or trigger any other apocalyptic scenarios. You are directly communicating with Bluetooth hardware through heavily reverse-engineered protocols natively without the manufacturer's safety nets—**use at your own risk.**
+## License
+
+[MIT](LICENSE).
+
+This talks to the bulbs with a reverse-engineered protocol and skips the manufacturer's app. The authors are not responsible for what the hardware does. Use it on bulbs you own.
