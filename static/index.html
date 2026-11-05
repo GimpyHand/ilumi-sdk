@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1814" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#1a1814" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ilumi" />
+  <meta name="application-name" content="ilumi" />
+  <meta name="format-detection" content="telephone=no, email=no, address=no" />
+  <meta name="HandheldFriendly" content="true" />
+  <title>ilumi</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/static/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png" />
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/apple-touch-icon.png" />
+  <link rel="mask-icon" href="/static/favicon.svg" color="#ff8a20" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+    :root {
+      --metal-hi: #5a564c;
+      --metal: #3a3730;
+      --metal-lo: #1c1a16;
+      --ink: #efe6d4;
+      --mute: #9a9080;
+      --line: rgba(20, 16, 10, 0.55);
+      --accent: #c8a24a;
+      --accent-ink: #1a1408;
+      --bad: #c45a4a;
+      --pad: 0.9rem;
+      --safe-t: env(safe-area-inset-top, 0px);
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --live: #ff8a20;
+      --well: #0e0c0a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+    html, body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      color: var(--ink);
+      font-family: "Barlow Condensed", "DM Sans", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      touch-action: manipulation;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    body {
+      height: 100dvh;
+      background:
+        radial-gradient(ellipse 90% 60% at 50% 0%, #2a241c, transparent 55%),
+        repeating-linear-gradient(90deg, rgba(0,0,0,0.03) 0 1px, transparent 1px 3px),
+        linear-gradient(180deg, #14110e, #0a0908 60%, #050504);
+    }
+    input, textarea, select {
+      -webkit-user-select: text;
+      user-select: text;
+      font-size: 16px; /* stop iOS input zoom */
+    }
+    button, .tab, .chip, .fav, .mode, .beat-tog, .fader, .tempo-dial {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .app {
+      width: min(430px, 100%);
+      height: 100dvh;
+      margin: 0 auto;
+      padding: calc(0.65rem + var(--safe-t)) var(--pad) calc(0.55rem + var(--safe-b));
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      gap: 0.55rem;
+      min-width: 0;
+      overflow: hidden;
+      position: relative;
+      background:
+        linear-gradient(125deg, rgba(255,255,255,0.07) 0%, transparent 34%),
+        linear-gradient(180deg, #4a463c 0%, #2e2b25 38%, #1a1814 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.18),
+        inset 0 -3px 8px rgba(0,0,0,0.45),
+        0 0 0 1px #0a0908,
+        0 0 0 3px #6a6558,
+        0 0 0 4px #2a2720,
+        0 18px 40px rgba(0,0,0,0.55);
+    }
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 2px, rgba(255,255,255,0.015) 2px 3px),
+        repeating-linear-gradient(0deg, transparent 0 3px, rgba(0,0,0,0.04) 3px 4px);
+      mix-blend-mode: soft-light;
+    }
+    .app::after {
+      content: "";
+      position: absolute;
+      top: 0.55rem; left: 0.55rem; right: 0.55rem; bottom: 0.55rem;
+      border: 1px solid rgba(0,0,0,0.35);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+      pointer-events: none;
+      border-radius: 0.15rem;
+    }
+
+    #main {
+      min-height: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      grid-row: 1;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    #main[hidden] { display: none !important; }
+
+    .panel {
+      min-height: 0;
+      height: 100%;
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+    .panel.active { display: flex; }
+    #panel-color { overflow: hidden; }
+    #panel-modes { overflow: hidden; gap: 0.5rem; }
+
+    .field { display: grid; gap: 0.22rem; flex: 0 0 auto; }
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font: 600 0.7rem/1 "IBM Plex Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--mute);
+      text-shadow: 0 1px 0 rgba(0,0,0,0.55);
+    }
+    .field label b {
+      color: var(--accent);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: none;
+    }
+
+    /* Recessed metal fader wells */
+    .hue, .bri {
+      position: relative;
+      height: 1.7rem;
+      border-radius: 0.2rem;
+      border: 1px solid #0a0908;
+      box-shadow:
+        inset 0 3px 8px rgba(0,0,0,0.7),
+        inset 0 -1px 0 rgba(255,255,255,0.06),
+        0 1px 0 rgba(255,255,255,0.08);
+      touch-action: none;
+      cursor: pointer;
+    }
+    .hue {
+      background: linear-gradient(90deg,
+        #ff0000 0%, #ff8000 8%, #ffff00 17%, #80ff00 25%, #00ff00 33%,
+        #00ff80 42%, #00ffff 50%, #0080ff 58%, #0000ff 67%, #8000ff 75%,
+        #ff00ff 83%, #ff0080 92%, #ff0000 100%);
+    }
+    .bri {
+      background:
+        linear-gradient(90deg, #050403 0%, #1a1008 18%, var(--live) 100%);
+    }
+    .bri.off {
+      background: linear-gradient(90deg, #050403, #1a1612);
+    }
+    .knob {
+      position: absolute;
+      top: 50%;
+      width: 1.15rem;
+      height: 1.55rem;
+      border-radius: 0.15rem;
+      border: 1px solid #0a0908;
+      background:
+        linear-gradient(90deg, #2a2822, #7a7568 45%, #3a3730 55%, #1a1814);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.35),
+        0 2px 4px rgba(0,0,0,0.55);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .knob::after {
+      content: "";
+      position: absolute;
+      left: 50%; top: 15%; bottom: 15%;
+      width: 2px;
+      margin-left: -1px;
+      background: linear-gradient(180deg, transparent, rgba(0,0,0,0.55), transparent);
+    }
+
+    .section-h {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex: 0 0 auto;
+      border-bottom: 1px solid rgba(0,0,0,0.35);
+      padding-bottom: 0.2rem;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .section-h h2 {
+      font: 600 0.68rem/1 "IBM Plex Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--mute);
+      text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+    }
+    .ghost {
+      border: 0;
+      background: transparent;
+      color: var(--accent);
+      font: 600 0.78rem/1 "Barlow Condensed", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0.1rem 0;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.4);
+    }
+    .ghost.on {
+      color: var(--accent-ink);
+      background: linear-gradient(180deg, #e0c070, #a88830);
+      border: 1px solid #6a5010;
+      padding: 0.2rem 0.45rem;
+      border-radius: 0.15rem;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .section-h .ghost-row { display: inline-flex; gap: 0.45rem; align-items: center; }
+
+    /* Lamp jewels set in a punched metal strip */
+    .favs {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.4rem;
+      flex: 0 0 auto;
+      padding: 0.45rem 0.4rem;
+      background:
+        linear-gradient(180deg, #2a2721, #161410);
+      border: 1px solid #0a0908;
+      box-shadow:
+        inset 0 2px 6px rgba(0,0,0,0.55),
+        0 1px 0 rgba(255,255,255,0.06);
+    }
+    .fav {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px solid #0a0908;
+      cursor: pointer;
+      position: relative;
+      background: #333;
+      touch-action: manipulation;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      box-shadow:
+        inset 0 -4px 6px rgba(0,0,0,0.45),
+        inset 0 2px 3px rgba(255,255,255,0.35),
+        0 1px 2px rgba(0,0,0,0.4);
+    }
+    .fav.save {
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 35% 30%, #4a463c, #1a1814 70%);
+      color: var(--accent);
+      font-size: 1.15rem;
+      font-weight: 500;
+      line-height: 1;
+      border-radius: 50%;
+    }
+    .fav.selected {
+      box-shadow:
+        inset 0 -4px 6px rgba(0,0,0,0.35),
+        inset 0 2px 3px rgba(255,255,255,0.4),
+        0 0 0 2px var(--accent),
+        0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+    .fav.selected::after {
+      content: "";
+      position: absolute;
+      right: 0.15rem;
+      bottom: 0.15rem;
+      width: 0.35rem;
+      height: 0.35rem;
+      border-radius: 50%;
+      background: #fff4c8;
+      box-shadow: 0 0 6px #fff4c8;
+    }
+    .fav .x {
+      position: absolute;
+      top: -0.25rem;
+      right: -0.25rem;
+      width: 0.95rem;
+      height: 0.95rem;
+      border-radius: 50%;
+      border: 0;
+      background: #2a100e;
+      color: var(--bad);
+      font-size: 0.6rem;
+      display: none;
+      place-items: center;
+      cursor: pointer;
+    }
+    .fav.custom:hover .x, .fav.custom:focus-within .x { display: grid; }
+
+    /* Tempo console well */
+    .tempo {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.55rem 0.4rem;
+      margin: 0;
+      flex: 1 1 auto;
+      min-height: 0;
+      container-type: size;
+      background:
+        radial-gradient(ellipse 75% 65% at 50% 48%, #2a241c, #0e0c0a 70%);
+      border: 1px solid #0a0908;
+      box-shadow:
+        inset 0 4px 14px rgba(0,0,0,0.65),
+        inset 0 -1px 0 rgba(255,255,255,0.04),
+        0 1px 0 rgba(255,255,255,0.06);
+      overflow: hidden;
+      position: relative;
+    }
+    .tempo-plate {
+      font: 600 0.58rem/1 "IBM Plex Mono", monospace;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(239, 230, 212, 0.28);
+      flex: 0 0 auto;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+    }
+    .tempo-dial {
+      position: relative;
+      /* Leave room for bezel shadow + plate + order switch */
+      width: min(100cqw - 1.75rem, 100cqh - 3.75rem);
+      max-width: 100%;
+      aspect-ratio: 1;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(255,255,255,0.12), transparent 40%),
+        radial-gradient(circle at 70% 78%, rgba(0,0,0,0.55), transparent 48%),
+        linear-gradient(145deg, #3f3b32 0%, #201c16 52%, #0c0a08 100%);
+      box-shadow:
+        0 0 0 2px #14110c,
+        0 0 0 4px #5a554a,
+        0 0 0 5px #0a0908,
+        inset 0 2px 4px rgba(255,255,255,0.1),
+        inset 0 -8px 14px rgba(0,0,0,0.5),
+        0 8px 16px rgba(0,0,0,0.4);
+    }
+    .tempo-dial:active { cursor: grabbing; }
+    .tempo-dial::before {
+      content: "";
+      position: absolute;
+      inset: 8%;
+      border-radius: 50%;
+      border: 1px solid rgba(239,230,212,0.08);
+      pointer-events: none;
+    }
+    .tempo-ring {
+      position: absolute;
+      inset: 9%;
+      border-radius: 50%;
+      background: conic-gradient(
+        from -140deg,
+        #ff3a18 0deg,
+        #ff8a1a 38deg,
+        #f0d030 72deg,
+        #b6f25a 105deg,
+        #5ad0f2 145deg,
+        #7080ff 185deg,
+        #e070ff 225deg,
+        #ff4d6a 265deg,
+        transparent 280deg 360deg
+      );
+      mask: radial-gradient(circle, transparent 76%, #000 77%, #000 94%, transparent 95%);
+      -webkit-mask: radial-gradient(circle, transparent 76%, #000 77%, #000 94%, transparent 95%);
+      opacity: 0.88;
+      filter: saturate(1.1);
+      pointer-events: none;
+    }
+    .tempo-ticks {
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .tempo-tick {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1px;
+      height: 42%;
+      margin-left: -0.5px;
+      transform-origin: 50% 0;
+      background: linear-gradient(to bottom, rgba(239,230,212,0.4) 0%, rgba(239,230,212,0.4) 8%, transparent 9%);
+    }
+    .tempo-tick.major {
+      width: 2px;
+      margin-left: -1px;
+      background: linear-gradient(to bottom, rgba(239,230,212,0.75) 0%, rgba(239,230,212,0.75) 12%, transparent 13%);
+    }
+    .tempo-needle {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 2px;
+      height: 34%;
+      margin-left: -1px;
+      transform-origin: 50% 0;
+      background: linear-gradient(to bottom, #f0c060 0%, #c48a28 60%, transparent 100%);
+      border-radius: 2px;
+      box-shadow: 0 0 8px rgba(240, 192, 96, 0.35);
+      transition: transform 0.2s cubic-bezier(0.2, 0.85, 0.2, 1);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .tempo-needle::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -0.22rem;
+      width: 0.45rem;
+      height: 0.45rem;
+      margin-left: -0.225rem;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #ffe9a8, #c48a28 70%);
+      box-shadow: 0 0 0 2px #1a1610, 0 0 8px rgba(240, 192, 96, 0.4);
+    }
+    .tempo-hub {
+      position: absolute;
+      inset: 28%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 36% 28%, rgba(255,255,255,0.1), transparent 40%),
+        radial-gradient(circle at 50% 100%, rgba(0,0,0,0.4), transparent 55%),
+        linear-gradient(160deg, #322e28, #16130f 60%, #0a0908);
+      border: 1px solid #5a554a;
+      box-shadow:
+        inset 0 2px 5px rgba(255,255,255,0.06),
+        inset 0 -5px 12px rgba(0,0,0,0.5),
+        0 1px 0 #050403;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      gap: 0.2rem;
+      padding: 0.4rem;
+      z-index: 1;
+      cursor: pointer;
+    }
+    .tempo-hub::after { display: none; }
+    .tempo-hub .name {
+      font: 700 1.15rem/1 "Barlow Condensed", sans-serif;
+      letter-spacing: 0.1em;
+      color: var(--ink);
+      text-transform: uppercase;
+      text-shadow: 0 1px 0 rgba(0,0,0,0.7);
+      margin-top: 0;
+    }
+    .tempo-hub .sub {
+      font: 500 0.62rem/1.15 "IBM Plex Mono", monospace;
+      color: rgba(239, 230, 212, 0.42);
+      letter-spacing: 0.04em;
+      max-width: 5.2rem;
+    }
+    .tempo-hub .bars {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 2px;
+      height: 0.75rem;
+      margin-top: 0.15rem;
+    }
+    .tempo-hub .bars i {
+      display: block;
+      width: 2px;
+      border-radius: 1px;
+      background: #c48a28;
+      opacity: 0.25;
+      height: 20%;
+      animation: none;
+    }
+    .tempo-hub.live .bars i {
+      opacity: 1;
+      background: var(--accent);
+      animation: eq 0.55s ease-in-out infinite alternate;
+    }
+    .tempo-hub.live .bars i:nth-child(2) { animation-delay: 0.08s; }
+    .tempo-hub.live .bars i:nth-child(3) { animation-delay: 0.16s; }
+    .tempo-hub.live .bars i:nth-child(4) { animation-delay: 0.04s; }
+    .tempo-hub.live .bars i:nth-child(5) { animation-delay: 0.2s; }
+    .tempo-hub.audio.live .bars i { background: #ff4a20; }
+    @keyframes eq {
+      from { height: 18%; opacity: 0.45; }
+      to { height: 100%; opacity: 1; }
+    }
+    .tempo-labels {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      overflow: hidden;
+    }
+    .tempo-labels span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 2.6rem;
+      margin-left: -1.3rem;
+      margin-top: -0.4rem;
+      text-align: center;
+      font: 600 0.5rem/1 "IBM Plex Mono", monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(239,230,212,0.32);
+      transition: color 0.15s, text-shadow 0.15s;
+    }
+    .tempo-labels span.on {
+      color: #f0c060;
+      text-shadow: 0 0 8px rgba(240, 192, 96, 0.4);
+    }
+    .order-flip {
+      border: 1px solid #0a0908;
+      background: linear-gradient(180deg, #4a463c 0%, #1e1c18 100%);
+      color: var(--mute);
+      font: 600 0.62rem/1 "IBM Plex Mono", monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.32rem 0.55rem;
+      border-radius: 0.15rem;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.1),
+        0 1px 0 #050403;
+      flex: 0 0 auto;
+    }
+    .order-flip .track {
+      width: 2.4rem;
+      height: 1.05rem;
+      border-radius: 0.15rem;
+      background: #0a0908;
+      border: 1px solid rgba(0,0,0,0.7);
+      position: relative;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.7);
+      flex-shrink: 0;
+    }
+    .order-flip .track::after {
+      content: "";
+      position: absolute;
+      top: 0.12rem;
+      left: 0.12rem;
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 0.1rem;
+      background: linear-gradient(160deg, #d8decc, #8a9080);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+      transition: left 0.18s ease;
+    }
+    .order-flip[data-shuffle="1"] .track::after { left: 1.4rem; }
+    .order-flip .a, .order-flip .b {
+      transition: color 0.15s, opacity 0.15s;
+      opacity: 0.35;
+    }
+    .order-flip[data-shuffle="0"] .a,
+    .order-flip[data-shuffle="1"] .b {
+      color: var(--ink);
+      opacity: 1;
+    }
+
+    .whites-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid #0a0908;
+      background:
+        linear-gradient(90deg, #ffb060 0%, #fff4d8 42%, #e8f0ff 72%, #b8d0ff 100%);
+      background-size: 100% 3px;
+      background-repeat: no-repeat;
+      background-position: top;
+      box-shadow:
+        inset 0 2px 8px rgba(0,0,0,0.55),
+        0 1px 0 rgba(255,255,255,0.05);
+      flex: 0 0 auto;
+    }
+    .whites-wrap select {
+      width: 100%;
+      border: 0;
+      border-top: 1px solid rgba(0,0,0,0.4);
+      background: linear-gradient(180deg, #242018, #14110e);
+      color: var(--mute);
+      border-radius: 0;
+      padding: 0.4rem 0.55rem;
+      font: 500 0.78rem "Barlow Condensed", sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .white-quick {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 0.3rem;
+      padding: 0.45rem;
+      background: linear-gradient(180deg, #1e1c18, #12100c);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scrollbar-width: none;
+    }
+    .white-quick::-webkit-scrollbar { display: none; }
+    .white-row {
+      border: 1px solid #0a0908;
+      background: linear-gradient(180deg, #3a3730, #1a1814);
+      color: var(--ink);
+      border-radius: 0.15rem;
+      padding: 0.35rem 0.55rem;
+      font: 600 0.78rem/1 "Barlow Condensed", sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      display: inline-flex;
+      flex-direction: column;
+      gap: 0.12rem;
+      flex: 0 0 auto;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 1px 2px rgba(0,0,0,0.35);
+    }
+    .white-row::after {
+      content: attr(data-hint);
+      font: 400 0.55rem "IBM Plex Mono", monospace;
+      color: var(--mute);
+      letter-spacing: 0.02em;
+      text-transform: none;
+    }
+    .white-row.active {
+      color: var(--accent-ink);
+      background: linear-gradient(180deg, #e0c070, #a88830);
+      border-color: #6a5010;
+    }
+
+    /* Physical rocker — Beat is audio only */
+    .beat-tog {
+      height: 2.45rem;
+      padding: 0 0.55rem 0 0.65rem;
+      border-radius: 0.2rem;
+      border: 1px solid #0a0908;
+      background: linear-gradient(180deg, #4a463c 0%, #1e1c18 100%);
+      color: var(--mute);
+      font: 700 0.72rem/1 "IBM Plex Mono", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        inset 0 -2px 4px rgba(0,0,0,0.45),
+        0 2px 0 #050403;
+    }
+    .beat-tog .rocker {
+      width: 1.45rem;
+      height: 1.45rem;
+      border-radius: 0.15rem;
+      background: linear-gradient(160deg, #5a564c 0%, #2a2720 55%, #14110e 100%);
+      border: 1px solid #0a0908;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 3px rgba(0,0,0,0.5);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .beat-tog .rocker::after {
+      content: "";
+      position: absolute;
+      left: 50%; top: 58%;
+      width: 0.4rem; height: 0.4rem;
+      margin: -0.2rem 0 0 -0.2rem;
+      border-radius: 50%;
+      background: #3a2010;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.7);
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    .beat-tog.on {
+      color: var(--accent-ink);
+      background: linear-gradient(180deg, #e8d080 0%, #c8a24a 45%, #8a7020 100%);
+      border-color: #6a5010;
+    }
+    .beat-tog.on .rocker {
+      background: linear-gradient(200deg, #fff0b0 0%, #d0b050 55%, #8a7020 100%);
+      transform: translateY(1px);
+    }
+    .beat-tog.on .rocker::after {
+      background: #ff3a10;
+      box-shadow: 0 0 8px #ff4a20, inset 0 1px 1px rgba(255,255,255,0.4);
+    }
+    .beat-tog:disabled { opacity: 0.4; cursor: default; }
+
+    .btn-row { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+    .modes-tools { flex: 0 0 auto; }
+    .track-bar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-width: 0;
+      padding: 0.2rem 0.15rem 0;
+    }
+    .track-bar[hidden] { display: none !important; }
+    .track-bar .ghost {
+      flex: 0 0 auto;
+      min-width: 2.6rem;
+    }
+    .track-bar .track-name {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--mute);
+      font: 500 0.78rem/1.2 "IBM Plex Mono", monospace;
+      letter-spacing: 0.02em;
+    }
+    .track-bar.live .track-name { color: var(--accent); }
+    #panel-modes .btn { flex: 1; padding: 0.5rem 0.45rem; }
+    .modes-tools .beat-tog { flex: 0 0 auto; }
+    .btn {
+      border: 1px solid #0a0908;
+      background: linear-gradient(180deg, #4a463c, #1e1c18);
+      color: var(--ink);
+      border-radius: 0.2rem;
+      padding: 0.55rem 0.85rem;
+      font: 600 0.9rem/1 "Barlow Condensed", sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 0 #050403;
+    }
+    .btn.primary {
+      background: linear-gradient(180deg, #e0c070, #a88830);
+      color: var(--accent-ink);
+      border-color: #6a5010;
+    }
+    .modes {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-content: flex-start;
+      overflow: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
+      padding: 0.35rem;
+      background: linear-gradient(180deg, #1a1814, #0e0c0a);
+      border: 1px solid #0a0908;
+      box-shadow: inset 0 3px 10px rgba(0,0,0,0.55);
+    }
+    .mode, .mode-add {
+      flex: 0 0 calc(33.333% - 0.27rem);
+      min-height: 3.7rem;
+      text-align: center;
+      border: 1px solid #0a0908;
+      background: linear-gradient(180deg, #3a3730, #1a1814);
+      color: var(--ink);
+      border-radius: 0.2rem;
+      padding: 0.4rem 0.3rem 0.4rem;
+      cursor: pointer;
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 0.3rem;
+      font: 600 0.82rem/1.1 "Barlow Condensed", sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      min-width: 0;
+      word-break: break-word;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 1px 2px rgba(0,0,0,0.35);
+    }
+    .mode .mode-label { display: block; max-width: 100%; }
+    .mode .swatches {
+      display: flex; gap: 0.18rem; justify-content: center; flex-wrap: nowrap; max-width: 100%;
+    }
+    .mode .swatch {
+      width: 0.5rem; height: 0.5rem; border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.45);
+      flex: 0 0 auto;
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.35);
+    }
+    .mode.active {
+      border-color: #6a5010;
+      background: linear-gradient(180deg, #5a4a28, #2a2010);
+      color: var(--accent);
+    }
+    .mode-add {
+      color: var(--accent);
+      border-style: dashed;
+      font-size: 1.2rem;
+      font-weight: 500;
+      place-items: center;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.3rem;
+      padding: 0.3rem;
+      border-radius: 0.2rem;
+      background: linear-gradient(180deg, #1a1814, #0e0c0a);
+      border: 1px solid #0a0908;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.05);
+      position: relative;
+      z-index: 1;
+    }
+    .tab {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--mute);
+      border-radius: 0.15rem;
+      padding: 0.7rem 0.4rem;
+      font: 700 0.95rem/1 "Barlow Condensed", sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .tab.active {
+      background: linear-gradient(180deg, #4a463c, #2a2720);
+      color: var(--ink);
+      border-color: #0a0908;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 2px 0 #050403;
+    }
+
+    .status {
+      display: none;
+      position: fixed;
+      left: 50%;
+      bottom: calc(0.75rem + var(--safe-b));
+      transform: translateX(-50%);
+      z-index: 20;
+      max-width: min(90vw, 24rem);
+      padding: 0.45rem 0.75rem;
+      border-radius: 0.2rem;
+      background: rgba(20, 16, 10, 0.94);
+      border: 1px solid #0a0908;
+      font-size: 0.72rem;
+      color: var(--mute);
+      font-family: "IBM Plex Mono", monospace;
+      text-align: center;
+      pointer-events: none;
+    }
+    .status.show, .status.bad { display: block; }
+    .status.bad { color: var(--bad); }
+
+    .enroll {
+      display: none;
+      flex-direction: column;
+      gap: 0.65rem;
+      min-height: 0;
+      overflow: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      grid-row: 1;
+      position: relative;
+      z-index: 1;
+    }
+    .enroll.show { display: flex; }
+    .enroll p { color: var(--mute); font-size: 0.95rem; line-height: 1.4; font-family: "Barlow Condensed", sans-serif; }
+    .found { display: grid; gap: 0.35rem; }
+    .found-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.4rem;
+      align-items: center;
+      padding: 0.55rem 0.65rem;
+      border-radius: 0.2rem;
+      background: linear-gradient(180deg, #3a3730, #1a1814);
+      border: 1px solid #0a0908;
+      font-size: 0.85rem;
+    }
+    .found-item span { display: block; color: var(--mute); font-size: 0.68rem; font-family: "IBM Plex Mono", monospace; }
+    input[type="text"] {
+      width: 100%;
+      border: 1px solid #0a0908;
+      background: #0e0c0a;
+      color: var(--ink);
+      border-radius: 0.2rem;
+      padding: 0.65rem 0.75rem;
+      font: 500 0.95rem "Barlow Condensed", sans-serif;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.55);
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div id="main" hidden>
+      <section class="panel active" id="panel-color" data-panel="color">
+        <div class="field">
+          <label>level <b id="briLabel">100%</b></label>
+          <div class="bri" id="briBar" role="slider" aria-label="Brightness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" tabindex="0">
+            <div class="knob" id="briKnob"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>hue <b id="hueLabel">32°</b></label>
+          <div class="hue" id="hueBar" role="slider" aria-label="Hue" tabindex="0">
+            <div class="knob" id="hueKnob"></div>
+          </div>
+        </div>
+
+        <div class="section-h">
+          <h2>colour set</h2>
+          <div class="ghost-row">
+            <button class="ghost" id="multiFav" type="button" title="Tap several colours (touch)">multi</button>
+            <button class="ghost" id="saveFav" type="button">save</button>
+          </div>
+        </div>
+        <div class="favs" id="favs"></div>
+
+        <div class="tempo" id="rotateBox">
+          <div class="tempo-plate">tempo</div>
+          <div class="tempo-dial" id="tempoDial" role="slider" aria-valuemin="0" aria-valuemax="6" aria-valuenow="1" aria-label="Play style" tabindex="0">
+            <div class="tempo-ring" aria-hidden="true"></div>
+            <div class="tempo-ticks" id="tempoTicks" aria-hidden="true"></div>
+            <div class="tempo-labels" id="tempoLabels" aria-hidden="true"></div>
+            <div class="tempo-needle" id="tempoNeedle" aria-hidden="true"></div>
+            <div class="tempo-hub" id="tempoHub" title="Start / stop">
+              <div class="name" id="tempoName">PARTY</div>
+              <div class="sub" id="tempoSub">fast cuts</div>
+              <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+          <button type="button" class="order-flip" id="orderFlip" data-shuffle="0" title="Palette order">
+            <span class="a">order</span>
+            <span class="track" aria-hidden="true"></span>
+            <span class="b">shuffle</span>
+          </button>
+        </div>
+
+        <div class="section-h"><h2>whites</h2></div>
+        <div class="whites-wrap">
+          <div class="white-quick" id="whiteQuick"></div>
+          <select id="whiteSelect">
+            <option value="">More white profiles…</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-modes" data-panel="modes">
+        <div class="btn-row modes-tools">
+          <button class="beat-tog" id="beatBtn" type="button" disabled title="Follow music on this computer, or a track played here">
+            <span class="rocker" aria-hidden="true"></span>Beat
+          </button>
+          <button class="btn" id="trackBtn" type="button" title="Play a song in this app (Spotify/Apple Music can't be tapped)">Track</button>
+          <button class="btn" id="candleBtn" type="button">Candle</button>
+          <button class="btn" id="randomBtn" type="button">Shuffle</button>
+        </div>
+        <div class="track-bar" id="trackBar" hidden>
+          <button class="ghost" id="trackPlay" type="button">play</button>
+          <span class="track-name" id="trackName">no track</span>
+        </div>
+        <input id="beatFile" type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.flac,.ogg" hidden />
+        <audio id="beatAudio" playsinline preload="auto"></audio>
+        <div class="modes" id="modes"></div>
+      </section>
+    </div>
+
+    <section class="enroll show" id="enroll">
+      <p>Put the bulb in pairing mode, then scan.</p>
+      <div class="btn-row">
+        <button class="btn primary" id="scanBtn" type="button">Scan</button>
+        <button class="btn" id="refreshBtn" type="button">Reload</button>
+      </div>
+      <div class="found" id="found"></div>
+      <div id="enrollForm" hidden>
+        <input id="enrollName" type="text" placeholder="name" maxlength="64" />
+        <button class="btn primary" id="enrollBtn" type="button" style="margin-top:0.4rem">Enroll</button>
+      </div>
+    </section>
+
+    <nav class="tabs" id="tabs" hidden>
+      <button class="tab active" type="button" data-tab="color">Colours</button>
+      <button class="tab" type="button" data-tab="modes">Modes</button>
+    </nav>
+
+    <p class="status" id="status"></p>
+  </div>
+  <script>
+    const WHITE_QUICK = ["cool_white", "daylight", "incandescent", "candle_light", "sleep", "energize"];
+    const WHITE_LABELS = {
+      cool_white: "Cool", daylight: "Daylight", incandescent: "Warm", natural_white: "Natural",
+      early_morning: "Early morning", sunrise: "Sunrise", sunlight: "Sunlight",
+      edison_bulb: "Edison", bug_lighting: "Bug light", sleep: "Sleep", relax: "Relax",
+      beauty: "Beauty", think: "Think", focus: "Focus", energize: "Energize",
+      witches_brew: "Witches brew", candle_light: "Candle", core_breach: "Core breach",
+    };
+    // Dial sweeps -140° … +140° across these styles (beat sits at the end).
+    const PLAY_STYLES = [
+      { id: "strobe", label: "Strobe", desc: "hard flash", trigger: "interval", interval: 0.12, eq: 1 },
+      { id: "party", label: "Party", desc: "fast cuts", trigger: "interval", interval: 0.28, eq: 0.85 },
+      { id: "pulse", label: "Pulse", desc: "quick hits", trigger: "interval", interval: 0.55, eq: 0.65 },
+      { id: "steady", label: "Steady", desc: "every 2s", trigger: "interval", interval: 2, eq: 0.4 },
+      { id: "slow", label: "Slow", desc: "every 5s", trigger: "interval", interval: 5, eq: 0.22 },
+      { id: "wild", label: "Wild", desc: "random timing", trigger: "random", interval: 1.1, eq: 0.75 },
+      { id: "beat", label: "On beat", desc: "kick with music", trigger: "beat", interval: 2, eq: 0.55 },
+    ];
+    const DIAL_START = -140;
+    const DIAL_SWEEP = 280;
+    const MIC_COOLDOWN_MS = 380;
+
+    const state = {
+      bulbs: [], selected: null, power: false, hardBusy: false,
+      whites: [], effects: [], favorites: [],
+      hue: 32, brightness: 255, lastBri: 255,
+      color: { r: 255, g: 140, b: 40 },
+      colorSending: false, colorDirty: false,
+      activeEffect: null, tab: "color", activeWhite: null,
+      beat: { on: false, poll: 0, theme: null, shuffle: false, trigger: "interval", interval: 0.28, style: "party" },
+      cycleOn: false,
+      beatIds: null,
+      lastFavId: null,
+      multiSelect: false,
+      defaultFavId: "fav-default",
+      colorName: "default",
+    };
+    const trackBeat = {
+      ctx: null, source: null, analyser: null, raf: 0, pulsing: false,
+      objectUrl: null, name: "",
+      noise: 0.02, prevRms: 0, fluxAvg: 0, env: 0, bassEnv: 0, lastOnset: 0,
+    };
+    const $ = (id) => document.getElementById(id);
+    const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+    const hex = (r, g, b) => "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+
+    function hsvToRgb(h, s, v) {
+      const c = v * s;
+      const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+      const m = v - c;
+      let rp = 0, gp = 0, bp = 0;
+      if (h < 60) [rp, gp, bp] = [c, x, 0];
+      else if (h < 120) [rp, gp, bp] = [x, c, 0];
+      else if (h < 180) [rp, gp, bp] = [0, c, x];
+      else if (h < 240) [rp, gp, bp] = [0, x, c];
+      else if (h < 300) [rp, gp, bp] = [x, 0, c];
+      else [rp, gp, bp] = [c, 0, x];
+      return {
+        r: Math.round((rp + m) * 255),
+        g: Math.round((gp + m) * 255),
+        b: Math.round((bp + m) * 255),
+      };
+    }
+
+    function rgbToHsv(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const d = max - min;
+      let h = 0;
+      if (d) {
+        if (max === r) h = ((g - b) / d) % 6;
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+      }
+      return { h, s: max ? d / max : 0, v: max };
+    }
+
+    function matchFavoriteName(r, g, b) {
+      const hit = state.favorites.find((f) => f.r === r && f.g === g && f.b === b);
+      return hit ? hit.name : "";
+    }
+
+    function setLiveName(name) {
+      state.colorName = name || "";
+    }
+
+    function syncBriUI() {
+      const pct = state.power ? Math.round((state.brightness / 255) * 100) : 0;
+      paintLevel(pct);
+    }
+
+    function ensureLit() {
+      if (state.brightness <= 0) state.brightness = state.lastBri || 255;
+      if (state.brightness > 0) state.lastBri = state.brightness;
+      state.power = true;
+      syncBriUI();
+    }
+
+    function recomputeColor() {
+      state.color = hsvToRgb(state.hue, 1, 1);
+      const live = hex(state.color.r, state.color.g, state.color.b);
+      document.documentElement.style.setProperty("--live", live);
+      document.documentElement.style.setProperty("--hue", String(Math.round(state.hue)));
+      if (!state.activeWhite && !state.activeEffect) {
+        setLiveName(matchFavoriteName(state.color.r, state.color.g, state.color.b));
+      }
+      $("hueLabel").textContent = `${Math.round(state.hue)}°`;
+      $("hueKnob").style.left = `${(state.hue / 360) * 100}%`;
+      syncBriUI();
+      syncRotateMeta();
+    }
+
+    function defaultFavorite() {
+      return state.favorites.find((f) => f.id === state.defaultFavId) || state.favorites[0] || null;
+    }
+
+    function ensurePaletteSelection() {
+      if (state.beatIds && state.beatIds.size) {
+        if (state.lastFavId == null) state.lastFavId = [...state.beatIds][0];
+        return;
+      }
+      const def = defaultFavorite();
+      state.beatIds = new Set(def ? [def.id] : []);
+      state.lastFavId = def ? def.id : null;
+    }
+
+    async function rememberState(patch) {
+      if (!state.selected) return;
+      try {
+        await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/remember`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patch),
+        });
+      } catch { /* non-fatal */ }
+    }
+
+    function applySavedState(st) {
+      if (!st) return;
+      state.power = !!st.power;
+      state.brightness = clamp(Number(st.brightness) || 255, 0, 255);
+      if (state.brightness > 0) state.lastBri = state.brightness;
+      if (!state.power) state.brightness = 0;
+      state.activeWhite = st.white || null;
+      state.activeEffect = st.effect || null;
+      if (st.style) {
+        state.beat.style = st.style;
+        const style = currentStyle();
+        state.beat.trigger = style.trigger;
+        state.beat.interval = style.interval;
+      }
+      state.beat.shuffle = !!st.shuffle;
+      if (Array.isArray(st.palette_ids) && st.palette_ids.length) {
+        state.beatIds = new Set(st.palette_ids);
+      } else {
+        state.beatIds = null;
+        ensurePaletteSelection();
+      }
+      if (st.white) {
+        setLiveName(String(st.white).replace(/_/g, " "));
+      } else if (st.name) {
+        setLiveName(st.name);
+      }
+      if (st.r != null && st.g != null && st.b != null && !st.white) {
+        const hsv = rgbToHsv(st.r, st.g, st.b);
+        if (hsv.s > 0.05) state.hue = hsv.h || state.hue;
+        state.color = { r: st.r, g: st.g, b: st.b };
+      }
+    }
+
+    function formatDetail(detail) {
+      if (detail == null) return "";
+      if (typeof detail === "string") return detail;
+      if (Array.isArray(detail)) {
+        return detail.map((d) => (d && d.msg) || JSON.stringify(d)).join("; ");
+      }
+      try { return JSON.stringify(detail); } catch { return String(detail); }
+    }
+
+    async function api(path, opts = {}) {
+      const res = await fetch(path, opts);
+      const text = await res.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch { data = { detail: text }; }
+      if (!res.ok) throw new Error(formatDetail(data && data.detail) || res.statusText);
+      return data;
+    }
+
+    function setStatus(msg, bad = false) {
+      const el = $("status");
+      el.textContent = msg || "";
+      el.classList.toggle("bad", !!bad);
+      el.classList.toggle("show", !!msg);
+      if (msg && !bad) {
+        clearTimeout(setStatus._t);
+        setStatus._t = setTimeout(() => el.classList.remove("show"), 2200);
+      }
+    }
+
+    function showMain(on) {
+      $("main").hidden = !on;
+      $("tabs").hidden = !on;
+      $("enroll").classList.toggle("show", !on);
+      $("beatBtn").disabled = !on;
+    }
+
+    function selectedFavorites() {
+      if (!state.beatIds) return state.favorites.slice();
+      return state.favorites.filter((f) => state.beatIds.has(f.id));
+    }
+
+    function currentPalette() {
+      if (state.beat.theme) {
+        return {
+          theme: state.beat.theme,
+          palette: [],
+          shuffle: !!state.beat.shuffle,
+          trigger: state.beat.trigger,
+          interval: state.beat.interval,
+          brightness: state.brightness,
+        };
+      }
+      const favs = selectedFavorites();
+      const palette = (favs.length ? favs : state.favorites).map((f) => ({ r: f.r, g: f.g, b: f.b }));
+      return {
+        palette,
+        theme: null,
+        shuffle: !!state.beat.shuffle,
+        trigger: state.beat.trigger,
+        interval: state.beat.interval,
+        brightness: state.brightness,
+      };
+    }
+
+    function currentStyle() {
+      return PLAY_STYLES.find((s) => s.id === state.beat.style) || PLAY_STYLES[1];
+    }
+
+    function styleIndex(id) {
+      const i = PLAY_STYLES.findIndex((s) => s.id === (id || state.beat.style));
+      return i < 0 ? 1 : i;
+    }
+
+    function angleForIndex(i) {
+      const n = PLAY_STYLES.length;
+      if (n <= 1) return DIAL_START;
+      return DIAL_START + (DIAL_SWEEP * i) / (n - 1);
+    }
+
+    function indexFromAngle(deg) {
+      const n = PLAY_STYLES.length;
+      const t = clamp((deg - DIAL_START) / DIAL_SWEEP, 0, 1);
+      return clamp(Math.round(t * (n - 1)), 0, n - 1);
+    }
+
+    function runnerActive() {
+      return !!(state.beat.on || state.cycleOn);
+    }
+
+    function isAudioTrigger(t) {
+      return t === "beat" || t === "client";
+    }
+
+    function audioBeatOn() {
+      return !!(state.beat.on && isAudioTrigger(state.beat.trigger));
+    }
+
+    function trackLoaded() {
+      const audio = $("beatAudio");
+      return !!(audio && audio.src);
+    }
+
+    function syncTrackBar() {
+      const bar = $("trackBar");
+      const audio = $("beatAudio");
+      if (!bar || !audio) return;
+      const has = trackLoaded();
+      bar.hidden = !has;
+      $("trackName").textContent = has ? (trackBeat.name || "track") : "no track";
+      $("trackPlay").textContent = audio.paused ? "play" : "pause";
+      bar.classList.toggle("live", has && !audio.paused);
+    }
+
+    function stopTrackAnalysis() {
+      if (trackBeat.raf) cancelAnimationFrame(trackBeat.raf);
+      trackBeat.raf = 0;
+      trackBeat.pulsing = false;
+      trackBeat.noise = 0.02;
+      trackBeat.prevRms = 0;
+      trackBeat.fluxAvg = 0;
+      trackBeat.env = 0;
+      trackBeat.bassEnv = 0;
+      trackBeat.lastOnset = 0;
+    }
+
+    function teardownTrackGraph() {
+      stopTrackAnalysis();
+      trackBeat.analyser = null;
+      trackBeat.source = null;
+      if (trackBeat.ctx) {
+        try { trackBeat.ctx.close(); } catch { /* ignore */ }
+      }
+      trackBeat.ctx = null;
+    }
+
+    async function ensureTrackGraph() {
+      const audio = $("beatAudio");
+      if (!audio || !audio.src) throw new Error("no track loaded");
+      // MediaElementSource can only be created once per <audio> — keep the graph.
+      if (trackBeat.ctx && trackBeat.analyser) {
+        if (trackBeat.ctx.state === "suspended") await trackBeat.ctx.resume();
+        return;
+      }
+      const AC = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AC();
+      if (ctx.state === "suspended") await ctx.resume();
+      const source = ctx.createMediaElementSource(audio);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0.15;
+      source.connect(analyser);
+      analyser.connect(ctx.destination);
+      trackBeat.ctx = ctx;
+      trackBeat.source = source;
+      trackBeat.analyser = analyser;
+    }
+
+    function startTrackLoop() {
+      if (!trackBeat.analyser) return;
+      stopTrackAnalysis();
+      const analyser = trackBeat.analyser;
+      const time = new Float32Array(analyser.fftSize);
+      const freq = new Uint8Array(analyser.frequencyBinCount);
+      const sampleRate = trackBeat.ctx.sampleRate || 48000;
+      const binHz = sampleRate / analyser.fftSize;
+
+      const tick = () => {
+        if (!trackBeat.analyser) return;
+        const audio = $("beatAudio");
+        if (!audio || audio.paused || audio.ended) {
+          trackBeat.raf = requestAnimationFrame(tick);
+          syncTrackBar();
+          return;
+        }
+        analyser.getFloatTimeDomainData(time);
+        analyser.getByteFrequencyData(freq);
+
+        let sum = 0;
+        for (let i = 0; i < time.length; i++) sum += time[i] * time[i];
+        const rms = Math.sqrt(sum / time.length) + 1e-9;
+
+        let bass = 0;
+        let bassN = 0;
+        const lo = Math.max(1, Math.floor(20 / binHz));
+        const hi = Math.min(freq.length - 1, Math.ceil(180 / binHz));
+        for (let i = lo; i <= hi; i++) {
+          bass += freq[i];
+          bassN += 1;
+        }
+        bass = bassN ? bass / bassN / 255 : 0;
+
+        trackBeat.noise = trackBeat.noise * 0.98 + Math.max(rms, bass * 0.02) * 0.02;
+        const floor = Math.max(trackBeat.noise, 1e-5);
+        const level = Math.min(1, rms / (floor * 2.4));
+        const bassLevel = Math.min(1, bass / Math.max(floor * 8, 0.04));
+        const flux = Math.max(0, rms - trackBeat.prevRms);
+        trackBeat.prevRms = rms;
+        trackBeat.fluxAvg = trackBeat.fluxAvg * 0.92 + flux * 0.08;
+        trackBeat.env = trackBeat.env * 0.82 + level * 0.18;
+        trackBeat.bassEnv = trackBeat.bassEnv * 0.85 + bassLevel * 0.15;
+        const energy = 0.65 * trackBeat.env + 0.35 * trackBeat.bassEnv;
+
+        const now = performance.now();
+        const fluxHit = flux > Math.max(trackBeat.fluxAvg * 2.4, floor * 0.45);
+        const levelHit = level > Math.max(0.22, trackBeat.env * 1.28);
+        const bassHit = bassLevel > Math.max(0.28, trackBeat.bassEnv * 1.35);
+        const onset =
+          now - trackBeat.lastOnset > MIC_COOLDOWN_MS &&
+          level > 0.16 &&
+          ((fluxHit && levelHit) || (bassHit && levelHit) || (fluxHit && bassHit));
+
+        if (onset && !trackBeat.pulsing) {
+          trackBeat.lastOnset = now;
+          trackBeat.pulsing = true;
+          api("/api/beat/pulse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ energy: Math.min(1, Math.max(0.2, energy)) }),
+          }).catch(() => {}).finally(() => { trackBeat.pulsing = false; });
+        }
+
+        trackBeat.raf = requestAnimationFrame(tick);
+      };
+      trackBeat.raf = requestAnimationFrame(tick);
+    }
+
+    async function playTrackForBeat() {
+      const audio = $("beatAudio");
+      if (!audio || !audio.src) throw new Error("pick a track first");
+      await ensureTrackGraph();
+      try {
+        await audio.play();
+      } catch (err) {
+        throw new Error("could not play track");
+      }
+      syncTrackBar();
+    }
+
+    async function loadBeatFile(file) {
+      if (!file) return;
+      const audio = $("beatAudio");
+      stopTrackAnalysis();
+      try { audio.pause(); } catch { /* ignore */ }
+      if (trackBeat.objectUrl) {
+        try { URL.revokeObjectURL(trackBeat.objectUrl); } catch { /* ignore */ }
+      }
+      trackBeat.objectUrl = URL.createObjectURL(file);
+      trackBeat.name = file.name.replace(/\.[^.]+$/, "") || file.name;
+      audio.src = trackBeat.objectUrl;
+      audio.load();
+      syncTrackBar();
+    }
+
+    function buildTempoDial() {
+      const ticks = $("tempoTicks");
+      const labels = $("tempoLabels");
+      ticks.innerHTML = "";
+      labels.innerHTML = "";
+      const n = PLAY_STYLES.length;
+      for (let i = 0; i < n; i++) {
+        const ang = angleForIndex(i);
+        const tick = document.createElement("div");
+        tick.className = "tempo-tick major";
+        tick.style.transform = `rotate(${ang}deg)`;
+        ticks.appendChild(tick);
+        // minor ticks between majors
+        if (i < n - 1) {
+          const mid = document.createElement("div");
+          mid.className = "tempo-tick";
+          mid.style.transform = `rotate(${(ang + angleForIndex(i + 1)) / 2}deg)`;
+          ticks.appendChild(mid);
+        }
+        const lab = document.createElement("span");
+        lab.dataset.id = PLAY_STYLES[i].id;
+        lab.textContent = PLAY_STYLES[i].id === "beat" ? "Beat" : PLAY_STYLES[i].label;
+        // Keep labels inside the dial face (under the colour arc).
+        const r = 34;
+        const rad = ((ang - 90) * Math.PI) / 180;
+        const x = 50 + r * Math.cos(rad);
+        const y = 50 + r * Math.sin(rad);
+        lab.style.left = `${x}%`;
+        lab.style.top = `${y}%`;
+        lab.style.marginLeft = "-1.3rem";
+        lab.style.marginTop = "-0.4rem";
+        labels.appendChild(lab);
+      }
+      updateDialUI();
+    }
+
+    function updateDialUI() {
+      const style = currentStyle();
+      const i = styleIndex(style.id);
+      const ang = angleForIndex(i);
+      // Needle element hangs downward from center; +180 so 0° aims at the top mark.
+      $("tempoNeedle").style.transform = `rotate(${ang + 180}deg)`;
+      $("tempoName").textContent = style.label;
+      const running = runnerActive();
+      $("tempoSub").textContent = running ? "running" : style.desc;
+      $("tempoDial").setAttribute("aria-valuenow", String(i));
+      document.querySelectorAll("#tempoLabels span").forEach((el) => {
+        el.classList.toggle("on", el.dataset.id === style.id);
+      });
+      const hub = $("tempoHub");
+      hub.classList.toggle("live", running);
+      hub.classList.toggle("audio", audioBeatOn());
+      const flip = $("orderFlip");
+      if (flip) flip.dataset.shuffle = state.beat.shuffle ? "1" : "0";
+      // Beat rocker only reflects audio follow — not timed cycles
+      $("beatBtn").classList.toggle("on", audioBeatOn());
+    }
+
+    function syncRotateMeta() {
+      updateDialUI();
+    }
+
+    async function selectPlayStyle(id, { start = true } = {}) {
+      const style = PLAY_STYLES.find((s) => s.id === id);
+      if (!style) return;
+      state.beat.style = style.id;
+      state.beat.trigger = style.trigger;
+      state.beat.interval = style.interval;
+      syncRotateMeta();
+      rememberState({ style: style.id });
+      if (!start || !state.selected) return;
+      if (runnerActive()) {
+        await restartRunner();
+      }
+    }
+
+    async function toggleRunner() {
+      if (!state.selected) return;
+      if (runnerActive()) {
+        await stopBeat();
+        return;
+      }
+      await restartRunner();
+    }
+
+    async function restartRunner({ preferTrack = false } = {}) {
+      if (!state.selected) return;
+      const style = currentStyle();
+      stopTrackAnalysis();
+      // Beat follows either: (1) a track played in this page, or (2) computer audio.
+      // iOS cannot tap Spotify/Apple Music, and mic+music can't share the session.
+      let trigger = style.trigger;
+      let useTrack = false;
+      if (style.trigger === "beat") {
+        useTrack = !!(preferTrack || (trackLoaded() && !$("beatAudio").paused));
+        trigger = useTrack ? "client" : "beat";
+      }
+      state.beat.trigger = trigger;
+      state.beat.interval = style.interval;
+      try {
+        if (state.beat.on) {
+          // stop without clearing style
+          stopBeatPoll();
+          await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/beat/stop`, { method: "POST" });
+          state.beat.on = false;
+          state.cycleOn = false;
+        }
+        const data = await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/beat/start`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentPalette()),
+        });
+        applyBeatStatus(data.beat);
+        if (useTrack && data.beat && data.beat.trigger === "client") {
+          await playTrackForBeat();
+          startTrackLoop();
+          setStatus("following track in this app");
+        } else if (style.trigger === "beat") {
+          setStatus("listening on this computer — AirPlay here or use Track");
+        }
+        startBeatPoll();
+        ensureLit();
+        renderFavorites();
+        renderModes();
+        syncTrackBar();
+      } catch (e) {
+        stopTrackAnalysis();
+        setStatus(String(e.message || e), true);
+        await stopBeat();
+      }
+    }
+
+    function bindTempoDial() {
+      const dial = $("tempoDial");
+      const hub = $("tempoHub");
+      let dragging = false;
+      let moved = false;
+
+      const angleAt = (e) => {
+        const rect = dial.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        let deg = (Math.atan2(e.clientY - cy, e.clientX - cx) * 180) / Math.PI + 90;
+        // normalize into dial sweep band
+        while (deg > 180) deg -= 360;
+        while (deg < -180) deg += 360;
+        return clamp(deg, DIAL_START, DIAL_START + DIAL_SWEEP);
+      };
+
+      const applyPointer = (e) => {
+        const i = indexFromAngle(angleAt(e));
+        const id = PLAY_STYLES[i].id;
+        if (id !== state.beat.style) {
+          moved = true;
+          selectPlayStyle(id, { start: runnerActive() });
+        }
+      };
+
+      dial.addEventListener("pointerdown", (e) => {
+        if (e.target.closest("#tempoHub")) return;
+        dragging = true;
+        moved = false;
+        dial.setPointerCapture(e.pointerId);
+        applyPointer(e);
+      });
+      dial.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        applyPointer(e);
+      });
+      dial.addEventListener("pointerup", async (e) => {
+        if (!dragging) return;
+        dragging = false;
+        applyPointer(e);
+        if (moved && state.selected && !runnerActive()) {
+          // Engaging the dial starts the chosen style
+          await restartRunner();
+        }
+      });
+      dial.addEventListener("keydown", (e) => {
+        const i = styleIndex();
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+          e.preventDefault();
+          selectPlayStyle(PLAY_STYLES[clamp(i + 1, 0, PLAY_STYLES.length - 1)].id, { start: runnerActive() });
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+          e.preventDefault();
+          selectPlayStyle(PLAY_STYLES[clamp(i - 1, 0, PLAY_STYLES.length - 1)].id, { start: runnerActive() });
+        } else if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleRunner();
+        }
+      });
+      hub.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleRunner();
+      });
+      $("orderFlip").addEventListener("click", async () => {
+        state.beat.shuffle = !state.beat.shuffle;
+        syncRotateMeta();
+        rememberState({ shuffle: state.beat.shuffle });
+        if (runnerActive()) await pushBeatPalette();
+      });
+    }
+
+    function setTab(tab) {
+      state.tab = tab;
+      document.querySelectorAll(".tab").forEach((el) => el.classList.toggle("active", el.dataset.tab === tab));
+      document.querySelectorAll(".panel").forEach((el) => el.classList.toggle("active", el.dataset.panel === tab));
+    }
+
+    function renderFavorites() {
+      ensurePaletteSelection();
+      const root = $("favs");
+      root.innerHTML = "";
+      const save = document.createElement("button");
+      save.type = "button";
+      save.className = "fav save";
+      save.title = "Save current colour";
+      save.textContent = "+";
+      save.onclick = () => saveFavorite();
+      root.appendChild(save);
+
+      const selected = state.beatIds;
+      const multiBtn = $("multiFav");
+      if (multiBtn) multiBtn.classList.toggle("on", !!state.multiSelect);
+      state.favorites.forEach((f) => {
+        const inSet = !selected || selected.has(f.id);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "fav" + (f.builtin ? "" : " custom") + (inSet ? " selected" : "");
+        btn.style.background = hex(f.r, f.g, f.b);
+        btn.title = f.name || "favourite";
+        bindFavPointer(btn, f);
+        if (!f.builtin) {
+          const x = document.createElement("button");
+          x.type = "button";
+          x.className = "x";
+          x.textContent = "×";
+          x.title = "Remove";
+          x.onclick = (e) => { e.stopPropagation(); removeFavorite(f.id); };
+          btn.appendChild(x);
+        }
+        root.appendChild(btn);
+      });
+      syncRotateMeta();
+    }
+
+    function bindFavPointer(btn, f) {
+      let longTimer = 0;
+      let longFired = false;
+      const clearLong = () => {
+        if (longTimer) clearTimeout(longTimer);
+        longTimer = 0;
+      };
+      btn.addEventListener("pointerdown", (e) => {
+        if (e.button && e.button !== 0) return;
+        longFired = false;
+        clearLong();
+        longTimer = setTimeout(() => {
+          longFired = true;
+          // Long-press = add/remove (ctrl), good for touch without a keyboard.
+          selectPaletteFavorite(f, { ctrlKey: true, shiftKey: false, metaKey: false });
+          if (navigator.vibrate) try { navigator.vibrate(12); } catch {}
+        }, 420);
+      });
+      btn.addEventListener("pointerup", (e) => {
+        clearLong();
+        if (longFired) {
+          e.preventDefault();
+          return;
+        }
+        selectPaletteFavorite(f, e);
+      });
+      btn.addEventListener("pointercancel", clearLong);
+      // Avoid the delayed click synthesizing a second select on iOS.
+      btn.addEventListener("click", (e) => e.preventDefault());
+    }
+
+    function renderWhites() {
+      const quick = $("whiteQuick");
+      const sel = $("whiteSelect");
+      quick.innerHTML = "";
+      sel.innerHTML = `<option value="">More white profiles…</option>`;
+      const keys = state.whites.length ? state.whites : Object.keys(WHITE_LABELS);
+      WHITE_QUICK.forEach((k) => {
+        if (!keys.includes(k)) return;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "white-row" + (state.activeWhite === k ? " active" : "");
+        b.textContent = WHITE_LABELS[k] || k.replace(/_/g, " ");
+        const hints = {
+          cool_white: "6500K", daylight: "5500K", incandescent: "2700K",
+          candle_light: "1800K", sleep: "soft", energize: "crisp",
+        };
+        if (hints[k]) b.dataset.hint = hints[k];
+        b.onclick = () => setWhite(k);
+        quick.appendChild(b);
+      });
+      keys.filter((k) => !WHITE_QUICK.includes(k)).forEach((k) => {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = WHITE_LABELS[k] || k.replace(/_/g, " ");
+        if (state.activeWhite === k) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    function renderModes() {
+      const root = $("modes");
+      root.innerHTML = "";
+      state.effects.forEach((fx) => {
+        const id = typeof fx === "string" ? fx : fx.id;
+        const label = typeof fx === "string" ? fx.replace(/_/g, " ") : fx.label;
+        const colors = (typeof fx === "object" && Array.isArray(fx.colors)) ? fx.colors : [];
+        const active = state.beat.on ? state.beat.theme === id : state.activeEffect === id;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "mode" + (active ? " active" : "");
+        const name = document.createElement("span");
+        name.className = "mode-label";
+        name.textContent = label;
+        b.appendChild(name);
+        if (colors.length) {
+          const row = document.createElement("span");
+          row.className = "swatches";
+          colors.slice(0, 5).forEach((c) => {
+            const s = document.createElement("span");
+            s.className = "swatch";
+            s.style.background = hex(c.r, c.g, c.b);
+            row.appendChild(s);
+          });
+          b.appendChild(row);
+        }
+        b.onclick = () => playEffect(id, label);
+        root.appendChild(b);
+      });
+      const add = document.createElement("button");
+      add.type = "button";
+      add.className = "mode-add";
+      add.textContent = "+";
+      add.title = "Add your own mode";
+      add.onclick = () => setStatus("Custom modes next — design TBD");
+      root.appendChild(add);
+    }
+
+    async function selectPaletteFavorite(f, ev) {
+      ensurePaletteSelection();
+      const ids = state.favorites.map((x) => x.id);
+      const idx = ids.indexOf(f.id);
+      const multi = !!(ev && (ev.metaKey || ev.ctrlKey)) || !!state.multiSelect;
+      const range = !!(ev && ev.shiftKey);
+
+      if (range && state.lastFavId != null) {
+        const a = ids.indexOf(state.lastFavId);
+        const b = idx;
+        if (a >= 0 && b >= 0) {
+          const lo = Math.min(a, b);
+          const hi = Math.max(a, b);
+          state.beatIds = new Set(ids.slice(lo, hi + 1));
+        } else {
+          state.beatIds = new Set([f.id]);
+          state.lastFavId = f.id;
+        }
+      } else if (multi) {
+        if (state.beatIds.has(f.id)) {
+          if (state.beatIds.size > 1) state.beatIds.delete(f.id);
+        } else {
+          state.beatIds.add(f.id);
+        }
+        state.lastFavId = f.id;
+      } else {
+        // Plain tap: exclusive selection + apply that colour.
+        state.beatIds = new Set([f.id]);
+        state.lastFavId = f.id;
+        applyFavorite(f);
+      }
+
+      state.beat.theme = null;
+      renderFavorites();
+      rememberState({ palette_ids: [...state.beatIds] });
+      if (runnerActive() && (multi || range || state.beatIds.size > 1)) {
+        await pushBeatPalette();
+      }
+    }
+
+    function applyFavorite(f) {
+      const hsv = rgbToHsv(f.r, f.g, f.b);
+      state.hue = hsv.h || state.hue;
+      state.activeWhite = null;
+      state.activeEffect = null;
+      setLiveName(f.name || "");
+      recomputeColor();
+      ensureLit();
+      queueColor();
+      renderWhites();
+    }
+
+    async function pushBeatPalette() {
+      if (!runnerActive() || !state.selected) return;
+      try {
+        const data = await api("/api/beat/palette", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(currentPalette()),
+        });
+        applyBeatStatus(data.beat);
+      } catch (e) {
+        setStatus(String(e.message || e), true);
+      }
+    }
+
+    async function saveFavorite() {
+      if (!state.selected) return;
+      try {
+        const name = prompt("Name this colour?", hex(state.color.r, state.color.g, state.color.b)) || "";
+        const data = await api("/api/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, ...state.color }),
+        });
+        state.favorites = data.favorites;
+        if (state.beatIds) state.beatIds.add(data.favorite.id);
+        renderFavorites();
+      } catch (e) {
+        setStatus(String(e.message || e), true);
+      }
+    }
+
+    async function removeFavorite(id) {
+      try {
+        const data = await api(`/api/favorites/${encodeURIComponent(id)}`, { method: "DELETE" });
+        state.favorites = data.favorites;
+        if (state.beatIds) state.beatIds.delete(id);
+        renderFavorites();
+      } catch (e) {
+        setStatus(String(e.message || e), true);
+      }
+    }
+
+        async function queueColor() {
+      state.colorDirty = true;
+      if (!state.selected) return;
+      if (state.brightness <= 0) return;
+      if (!state.power) ensureLit();
+      if (state.colorSending) return;
+      state.colorSending = true;
+      if (runnerActive()) await stopBeat();
+      while (state.colorDirty) {
+        state.colorDirty = false;
+        const body = { ...state.color, w: 0, brightness: state.brightness, fade_ms: 0 };
+        try {
+          await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/color`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          state.activeEffect = null;
+          state.activeWhite = null;
+          renderModes();
+          renderWhites();
+          syncBriUI();
+        } catch (e) {
+          setStatus(String(e.message || e), true);
+          break;
+        }
+      }
+      state.colorSending = false;
+    }
+
+    let levelCommit = 0;
+    function paintLevel(pct) {
+      $("briLabel").textContent = pct <= 0 ? "off" : `${pct}%`;
+      $("briKnob").style.left = `${2 + pct * 0.96}%`;
+      $("briBar").setAttribute("aria-valuenow", String(pct));
+      $("briBar").classList.toggle("off", pct <= 0);
+    }
+
+    function setLevel(pct) {
+      pct = clamp(Math.round(pct), 0, 100);
+      paintLevel(pct);
+      if (pct <= 0) {
+        state.brightness = 0;
+        state.power = false;
+      } else {
+        state.brightness = Math.max(8, Math.round((pct / 100) * 255));
+        state.lastBri = state.brightness;
+        state.power = true;
+      }
+      clearTimeout(levelCommit);
+      levelCommit = setTimeout(() => commitLevel(pct), 90);
+    }
+
+    async function commitLevel(pct) {
+      if (!state.selected) return;
+      if (pct <= 0) {
+        try {
+          await stopBeat();
+          await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/off`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fade_ms: 80 }),
+          });
+          state.power = false;
+          state.brightness = 0;
+        } catch (e) {
+          setStatus(String(e.message || e), true);
+        }
+        syncBriUI();
+        return;
+      }
+      state.brightness = Math.max(8, Math.round((pct / 100) * 255));
+      state.lastBri = state.brightness;
+      state.power = true;
+      queueColor();
+      syncBriUI();
+    }
+
+    function bindBri() {
+      const bar = $("briBar");
+      let dragging = false;
+      const pick = (e) => {
+        const rect = bar.getBoundingClientRect();
+        const x = e.clientX != null ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX);
+        const pct = clamp(((x - rect.left) / rect.width) * 100, 0, 100);
+        setLevel(pct);
+      };
+      bar.addEventListener("pointerdown", (e) => {
+        dragging = true;
+        bar.setPointerCapture(e.pointerId);
+        pick(e);
+      });
+      bar.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        pick(e);
+      });
+      const end = () => { dragging = false; };
+      bar.addEventListener("pointerup", end);
+      bar.addEventListener("pointercancel", end);
+      bar.addEventListener("keydown", (e) => {
+        const cur = state.power ? Math.round((state.brightness / 255) * 100) : 0;
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+          e.preventDefault();
+          setLevel(cur + 5);
+        } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+          e.preventDefault();
+          setLevel(cur - 5);
+        }
+      });
+    }
+
+    async function setWhite(profile) {
+      if (!state.selected || !profile) return;
+      await stopBeat();
+      try {
+        await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/white`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ profile, brightness: state.brightness, fade_ms: 0 }),
+        });
+        ensureLit();
+        state.activeEffect = null;
+        state.activeWhite = profile;
+        setLiveName(profile.replace(/_/g, " "));
+        renderModes();
+        renderWhites();
+      } catch (e) {
+        setStatus(String(e.message || e), true);
+      }
+    }
+
+    async function playEffect(id) {
+      if (!state.selected) return;
+      state.activeEffect = id;
+      state.beat.theme = id;
+      state.beat.shuffle = false;
+      setLiveName(id.replace(/_/g, " "));
+      // Runner stays optional — modes never toggle Beat / tempo on.
+      if (runnerActive()) {
+        await pushBeatPalette();
+      } else {
+        try {
+          await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/effect`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ effect: id }),
+          });
+          ensureLit();
+        } catch (e) {
+          setStatus(String(e.message || e), true);
+        }
+      }
+      renderModes();
+      renderFavorites();
+    }
+
+    async function refresh() {
+      try {
+        const data = await api("/api/status");
+        state.bulbs = data.bulbs || [];
+        state.whites = data.whites || [];
+        state.effects = data.effects || [];
+        state.favorites = data.favorites || [];
+        if (data.default_favorite_id) state.defaultFavId = data.default_favorite_id;
+        if (state.bulbs.length) {
+          state.selected = state.bulbs[0];
+          const st = (data.states && data.states[state.selected.mac]) || null;
+          applySavedState(st);
+          showMain(true);
+          renderFavorites();
+          renderWhites();
+          renderModes();
+          recomputeColor();
+          if (st && st.name) setLiveName(st.name);
+          else if (!state.colorName) {
+            const def = defaultFavorite();
+            if (def) {
+              setLiveName(def.name);
+              const hsv = rgbToHsv(def.r, def.g, def.b);
+              state.hue = hsv.h || state.hue;
+              recomputeColor();
+            }
+          }
+          api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/warmup`, { method: "POST" }).catch(() => {});
+          if (data.beat) {
+            applyBeatStatus(data.beat);
+            if (data.beat.running) startBeatPoll();
+            renderModes();
+            renderFavorites();
+          }
+        } else {
+          state.selected = null;
+          showMain(false);
+        }
+      } catch (e) {
+        setStatus(String(e.message || e), true);
+      }
+    }
+
+    function bindHue() {
+      const bar = $("hueBar");
+      let dragging = false;
+      const pick = (e) => {
+        const rect = bar.getBoundingClientRect();
+        const x = e.clientX != null ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX);
+        state.hue = clamp(((x - rect.left) / rect.width) * 360, 0, 359.9);
+        state.activeWhite = null;
+        recomputeColor();
+        if (state.power && state.brightness > 0) queueColor();
+        renderWhites();
+      };
+      bar.addEventListener("pointerdown", (e) => {
+        dragging = true;
+        bar.setPointerCapture(e.pointerId);
+        pick(e);
+      });
+      bar.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        pick(e);
+      });
+      const end = () => { dragging = false; };
+      bar.addEventListener("pointerup", end);
+      bar.addEventListener("pointercancel", end);
+    }
+
+    function applyBeatStatus(b) {
+      state.beat.on = !!b.running;
+      state.beat.theme = b.theme || null;
+      state.beat.shuffle = !!b.shuffle;
+      if (b.trigger) state.beat.trigger = b.trigger;
+      if (b.interval != null) state.beat.interval = b.interval;
+      // Only mirror server trigger onto the dial while a runner is actually live.
+      if (b.running) {
+        if (isAudioTrigger(b.trigger)) state.beat.style = "beat";
+        else if (b.trigger === "random") state.beat.style = "wild";
+        else if (b.trigger === "interval" && b.interval != null) {
+          const match = PLAY_STYLES.find(
+            (s) => s.trigger === "interval" && Math.abs(s.interval - b.interval) < 0.05
+          );
+          if (match) state.beat.style = match.id;
+        }
+      }
+      state.cycleOn = !!(b.running && b.trigger && !isAudioTrigger(b.trigger));
+      if (b.color) {
+        document.documentElement.style.setProperty("--live", hex(b.color.r, b.color.g, b.color.b));
+        setLiveName(matchFavoriteName(b.color.r, b.color.g, b.color.b) || state.colorName);
+      }
+      if (b.running) {
+        ensureLit();
+      } else {
+        stopTrackAnalysis();
+      }
+      syncRotateMeta();
+      syncTrackBar();
+    }
+
+    function stopBeatPoll() {
+      if (state.beat.poll) clearInterval(state.beat.poll);
+      state.beat.poll = 0;
+    }
+
+    function startBeatPoll() {
+      stopBeatPoll();
+      state.beat.poll = setInterval(async () => {
+        try {
+          const b = await api("/api/beat");
+          applyBeatStatus(b);
+          if (!b.running) {
+            stopBeatPoll();
+            renderFavorites();
+            renderModes();
+          }
+        } catch { /* ignore */ }
+      }, 450);
+    }
+
+    async function stopBeat() {
+      stopBeatPoll();
+      stopTrackAnalysis();
+      const audio = $("beatAudio");
+      if (audio && !audio.paused) {
+        try { audio.pause(); } catch { /* ignore */ }
+      }
+      state.cycleOn = false;
+      if (!state.selected) {
+        state.beat.on = false;
+        syncRotateMeta();
+        syncTrackBar();
+        return;
+      }
+      if (!state.beat.on) {
+        syncRotateMeta();
+        syncTrackBar();
+        return;
+      }
+      try {
+        const data = await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/beat/stop`, {
+          method: "POST",
+        });
+        applyBeatStatus(data.beat || { running: false, trigger: state.beat.trigger });
+        state.cycleOn = false;
+        renderFavorites();
+        renderModes();
+        syncTrackBar();
+      } catch (e) {
+        state.beat.on = false;
+        state.cycleOn = false;
+        syncRotateMeta();
+        syncTrackBar();
+        setStatus(String(e.message || e), true);
+      }
+    }
+
+    async function startBeat() {
+      // Top rocker: audio follow only. Toggle off if already on beat.
+      if (!state.selected) return;
+      if (audioBeatOn()) {
+        await stopBeat();
+        return;
+      }
+      state.beat.style = "beat";
+      state.beat.trigger = "beat";
+      state.beat.interval = 2;
+      if (!state.beat.theme && state.activeEffect) state.beat.theme = state.activeEffect;
+      syncRotateMeta();
+      await restartRunner({ preferTrack: trackLoaded() && !$("beatAudio").paused });
+    }
+
+    async function startBeatFromTrack() {
+      if (!state.selected) return;
+      if (!trackLoaded()) {
+        $("beatFile").click();
+        return;
+      }
+      state.beat.style = "beat";
+      state.beat.trigger = "client";
+      state.beat.interval = 2;
+      if (!state.beat.theme && state.activeEffect) state.beat.theme = state.activeEffect;
+      syncRotateMeta();
+      await restartRunner({ preferTrack: true });
+    }
+
+    $("saveFav").addEventListener("click", () => saveFavorite());
+    $("multiFav").addEventListener("click", () => {
+      state.multiSelect = !state.multiSelect;
+      $("multiFav").classList.toggle("on", state.multiSelect);
+      setStatus(state.multiSelect ? "multi on — tap colours to build a set" : "multi off");
+    });
+    $("whiteSelect").addEventListener("change", (e) => {
+      if (e.target.value) setWhite(e.target.value);
+    });
+
+    $("candleBtn").addEventListener("click", async () => {
+      if (!state.selected) return;
+      await stopBeat();
+      try {
+        await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/candle`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ r: 255, g: 140, b: 20, w: 24, brightness: state.brightness }),
+        });
+        ensureLit();
+        state.activeEffect = "candle";
+        renderModes();
+      } catch (e) { setStatus(String(e.message || e), true); }
+    });
+    $("randomBtn").addEventListener("click", async () => {
+      if (!state.selected) return;
+      state.beat.shuffle = true;
+      if (runnerActive()) {
+        await pushBeatPalette();
+      } else {
+        try {
+          await api(`/api/bulbs/${encodeURIComponent(state.selected.mac)}/random`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sequence: true }),
+          });
+          ensureLit();
+          state.activeEffect = "random";
+        } catch (e) {
+          setStatus(String(e.message || e), true);
+        }
+      }
+      syncRotateMeta();
+      renderModes();
+    });
+    $("beatBtn").addEventListener("click", () => { startBeat(); });
+    $("trackBtn").addEventListener("click", () => { $("beatFile").click(); });
+    $("beatFile").addEventListener("change", async (e) => {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      try {
+        await loadBeatFile(file);
+        await startBeatFromTrack();
+      } catch (err) {
+        setStatus(String(err.message || err), true);
+      }
+    });
+    $("trackPlay").addEventListener("click", async () => {
+      const audio = $("beatAudio");
+      if (!audio || !audio.src) {
+        $("beatFile").click();
+        return;
+      }
+      try {
+        if (audio.paused) {
+          if (!audioBeatOn()) await startBeatFromTrack();
+          else {
+            await playTrackForBeat();
+            if (state.beat.trigger === "client") startTrackLoop();
+            else await restartRunner({ preferTrack: true });
+          }
+        } else {
+          audio.pause();
+          stopTrackAnalysis();
+          syncTrackBar();
+        }
+      } catch (err) {
+        setStatus(String(err.message || err), true);
+      }
+    });
+    $("beatAudio").addEventListener("ended", () => {
+      stopTrackAnalysis();
+      syncTrackBar();
+      setStatus("track ended");
+    });
+    $("beatAudio").addEventListener("pause", () => syncTrackBar());
+    $("beatAudio").addEventListener("play", () => syncTrackBar());
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => setTab(tab.dataset.tab));
+    });
+
+    $("scanBtn").addEventListener("click", async () => {
+      try {
+        const data = await api("/api/scan", { method: "POST" });
+        const found = $("found");
+        found.innerHTML = "";
+        (data.bulbs || []).forEach((bulb) => {
+          const row = document.createElement("div");
+          row.className = "found-item";
+          row.innerHTML = `<div>${bulb.name || "ilumi"}<span>${bulb.address}</span></div>`;
+          const btn = document.createElement("button");
+          btn.className = "btn primary";
+          btn.textContent = bulb.enrolled ? "Use" : "Pair";
+          btn.type = "button";
+          btn.onclick = async () => {
+            if (bulb.enrolled) { await refresh(); return; }
+            $("enrollForm").hidden = false;
+            $("enrollName").value = bulb.name || "desk";
+            $("enrollBtn").onclick = async () => {
+              try {
+                await api("/api/enroll", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ address: bulb.address, name: $("enrollName").value || "desk" }),
+                });
+                await refresh();
+              } catch (e) { setStatus(String(e.message || e), true); }
+            };
+          };
+          row.appendChild(btn);
+          found.appendChild(row);
+        });
+      } catch (e) { setStatus(String(e.message || e), true); }
+    });
+    $("refreshBtn").addEventListener("click", () => refresh());
+
+    // iOS Safari / home-screen: kill pinch-zoom and rubber-band pull-to-refresh.
+    document.addEventListener("gesturestart", (e) => e.preventDefault(), { passive: false });
+    document.addEventListener("gesturechange", (e) => e.preventDefault(), { passive: false });
+    document.addEventListener("gestureend", (e) => e.preventDefault(), { passive: false });
+    document.addEventListener("touchmove", (e) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+        return;
+      }
+      let el = e.target;
+      while (el && el !== document.body && el !== document.documentElement) {
+        const style = window.getComputedStyle(el);
+        const oy = style.overflowY;
+        if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 1) return;
+        const ox = style.overflowX;
+        if ((ox === "auto" || ox === "scroll") && el.scrollWidth > el.clientWidth + 1) return;
+        el = el.parentElement;
+      }
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+    bindHue();
+    bindBri();
+    buildTempoDial();
+    bindTempoDial();
+    recomputeColor();
+    syncTrackBar();
+    refresh();
+  </script>
+</body>
+</html>

@@ -358,11 +358,20 @@ class IlumiSDK:
         :return: List of discovered bulbs with name and address.
         """
         logger.info(f"Scanning for Ilumi bulbs ({timeout}s)...")
-        devices = await BleakScanner.discover(timeout=timeout)
+        # Bleak 3+: discover() returns BLEDevice without .rssi; use return_adv for AdvertisementData.
+        discovered = await BleakScanner.discover(timeout=timeout, return_adv=True)
         ilumi_bulbs = []
-        for d in devices:
-            if d.name and ("ilumi" in d.name.lower() or d.name.startswith("L0") or d.name.startswith("Nrdic")):
-                ilumi_bulbs.append({"name": d.name, "address": d.address, "rssi": d.rssi})
+        if isinstance(discovered, dict):
+            items = discovered.values()
+        else:
+            items = [(d, None) for d in discovered]
+        for d, adv in items:
+            name = d.name or (getattr(adv, "local_name", None) if adv else None)
+            if not name:
+                continue
+            if "ilumi" in name.lower() or name.startswith("L0") or name.startswith("Nrdic"):
+                rssi = getattr(adv, "rssi", None) if adv else getattr(d, "rssi", None)
+                ilumi_bulbs.append({"name": name, "address": d.address, "rssi": rssi})
         return ilumi_bulbs
 
     def _pack_header(self, message_type: int) -> bytes:
@@ -380,7 +389,9 @@ class IlumiSDK:
         header = network_id_bytes + struct.pack("B B", self.seq_num, message_type)
         
         self.seq_num = (self.seq_num + 2) % 256
-        config.update_config("seq_num", self.seq_num)
+        # Persist occasionally — every packet used to fsync JSON and made streaming color slow.
+        if self.seq_num % 32 == 0:
+            config.update_config("seq_num", self.seq_num)
         
         return header
 

@@ -26,6 +26,9 @@ btmon.txt
 *.swp
 *.swo
 
+# Web app assets (icons are PNG, but shipped with the app)
+!static/*.png
+
 # Project specific
 com.ilumi_APK/
 com.ilumibeta_apk/

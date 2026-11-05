@@ -1,3 +1,7 @@
+bleak>=3.0.0
+fastapi>=0.115.0
+uvicorn>=0.30.0
+pydantic>=2.0.0
 bumble>=0.0.200
 pyusb>=1.0.2
 numpy
